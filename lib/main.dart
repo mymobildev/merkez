@@ -49,6 +49,12 @@ class _MyHomePageState extends State<MyHomePage> {
     zoom: 19,
   );
 
+  static const CameraPosition _kNebevi = CameraPosition(
+    bearing: 0,
+    target: LatLng(24.46762345655713, 39.61139385026656),
+    tilt: 0,
+    zoom: 19,
+  );
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -95,12 +101,11 @@ class _MyHomePageState extends State<MyHomePage> {
             label: const Text('To the Mekke!'),
             icon: const Icon(Icons.flag),
           ),
-          SizedBox(width: 8),
           FloatingActionButton.extended(
             onPressed: () {
-              _goToTheIstanbul();
+              _goToTheNebevi();
             },
-            label: const Text('To the İstanbul!'),
+            label: const Text('To the Mescidi Nebevi!'),
             icon: const Icon(Icons.add),
           ),
         ],
@@ -118,6 +123,11 @@ class _MyHomePageState extends State<MyHomePage> {
     final GoogleMapController controller = await _controller.future;
     await controller
         .animateCamera(CameraUpdate.newCameraPosition(_kGooglePlex));
+  }
+
+  Future<void> _goToTheNebevi() async {
+    final GoogleMapController controller = await _controller.future;
+    await controller.animateCamera(CameraUpdate.newCameraPosition(_kNebevi));
   }
 
   Future<void> _findAddressOnMap() async {
