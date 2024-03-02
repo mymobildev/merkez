@@ -1,21 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:async';
-import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
-import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
+import 'package:geocoding/geocoding.dart';
 
 void main() => runApp(const MyApp());
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({Key? key}) : super(key: key);
+
   static const String _title = 'Flutter Stateful Clicker Counter';
-  // This widget is the root of your application.
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: _title,
       theme: ThemeData(
-        // useMaterial3: true,
         primarySwatch: Colors.green,
       ),
       home: const MyHomePage(),
@@ -24,52 +23,128 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key});
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-  // This class is the configuration for the state.
-  // final Completer<GoogleMapController> _controller = Completer<GoogleMapController>();
+  const MyHomePage({Key? key}) : super(key: key);
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
   final Completer<GoogleMapController> _controller =
       Completer<GoogleMapController>();
+  GoogleMapController? _gcontroller;
+  TextEditingController _addressController = TextEditingController();
+  LatLng? _coordinates;
   static const CameraPosition _kGooglePlex = CameraPosition(
-    target: LatLng(37.42796133580664, -122.085749655962),
-    zoom: 14.4746,
+    bearing: 0,
+    target: LatLng(41.0082, 28.9784),
+    tilt: 0,
+    zoom: 12,
   );
 
-  static const CameraPosition _kLake = CameraPosition(
-      bearing: 192.8334901395799,
-      target: LatLng(37.43296265331129, -122.08832357078792),
-      tilt: 59.440717697143555,
-      zoom: 19.151926040649414);
+  static const CameraPosition _kKabe = CameraPosition(
+    bearing: 0,
+    target: LatLng(21.42264313924608, 39.82618906073263),
+    tilt: 0,
+    zoom: 19,
+  );
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: GoogleMap(
-        mapType: MapType.hybrid,
-        initialCameraPosition: _kGooglePlex,
-        onMapCreated: (GoogleMapController controller) {
-          _controller.complete(controller);
-        },
+      appBar: AppBar(
+        title: Text('Merkez Harita Uygulaması'),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _goToTheLake,
-        label: const Text('To the lake!'),
-        icon: const Icon(Icons.directions_boat),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: _addressController,
+              decoration: InputDecoration(
+                labelText: 'Konum Girin',
+                suffixIcon: IconButton(
+                  onPressed: () {
+                    _findAddressOnMap();
+                  },
+                  icon: Icon(Icons.search),
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: GoogleMap(
+              mapType: MapType.hybrid,
+              initialCameraPosition: _kGooglePlex,
+              onMapCreated: (GoogleMapController controller) {
+                _controller.complete(controller);
+                _gcontroller = controller;
+              },
+              markers: _coordinates != null ? _createMarkers() : {},
+            ),
+          ),
+        ],
       ),
+      floatingActionButton: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          FloatingActionButton.extended(
+            onPressed: () {
+              _goToTheKabe();
+            },
+            label: const Text('To the Mekke!'),
+            icon: const Icon(Icons.flag),
+          ),
+          SizedBox(width: 8),
+          FloatingActionButton.extended(
+            onPressed: () {
+              _goToTheIstanbul();
+            },
+            label: const Text('To the İstanbul!'),
+            icon: const Icon(Icons.add),
+          ),
+        ],
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.miniEndDocked,
     );
   }
 
-  Future<void> _goToTheLake() async {
+  Future<void> _goToTheKabe() async {
     final GoogleMapController controller = await _controller.future;
-    await controller.animateCamera(CameraUpdate.newCameraPosition(_kLake));
+    await controller.animateCamera(CameraUpdate.newCameraPosition(_kKabe));
+  }
+
+  Future<void> _goToTheIstanbul() async {
+    final GoogleMapController controller = await _controller.future;
+    await controller
+        .animateCamera(CameraUpdate.newCameraPosition(_kGooglePlex));
+  }
+
+  Future<void> _findAddressOnMap() async {
+    String address = _addressController.text;
+    print('Address: ${address}');
+    try {
+      List<Location> locations = await locationFromAddress(address);
+      Location location = locations.first;
+      print('Location: ${location}');
+      print('Latitude: ${location.latitude}, Longitude: ${location.longitude}');
+      setState(() {
+        _coordinates = LatLng(location.latitude, location.longitude);
+        if (_gcontroller != null) {
+          _gcontroller!.animateCamera(CameraUpdate.newLatLng(_coordinates!));
+        }
+      });
+    } catch (e) {
+      print('Hata: $e');
+    }
+  }
+
+  Set<Marker> _createMarkers() {
+    return {
+      Marker(
+        markerId: MarkerId('address_marker'),
+        position: _coordinates!,
+      ),
+    };
   }
 }
