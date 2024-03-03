@@ -2,9 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:async';
 import 'package:geocoding/geocoding.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:merkez/firebase_options.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-void main() => runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  runApp(MyApp());
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -79,6 +87,12 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ),
           ),
+          ElevatedButton(
+            onPressed: () {
+              _saveAddressToFirestore();
+            },
+            child: Text('Adresi Kaydet'),
+          ),
           Expanded(
             child: GoogleMap(
               mapType: MapType.hybrid,
@@ -147,6 +161,34 @@ class _MyHomePageState extends State<MyHomePage> {
       });
     } catch (e) {
       print('Hata: $e');
+    }
+  }
+
+  Future<void> _saveAddressToFirestore() async {
+    String address = _addressController.text;
+    if (address.isNotEmpty) {
+      try {
+        await FirebaseFirestore.instance.collection('addresses').add({
+          'address': address,
+          'latitude': _coordinates?.latitude,
+          'longitude': _coordinates?.longitude,
+        });
+        // Başarıyla kaydedildiğine dair bir geri bildirim gösterebilirsiniz
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Adres başarıyla kaydedildi!')),
+        );
+      } catch (e) {
+        print('Firestore kaydetme hatası: $e');
+        // Hata durumunda bir geri bildirim gösterebilirsiniz
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Adres kaydedilirken bir hata oluştu!')),
+        );
+      }
+    } else {
+      // Boş adres için bir uyarı gösterebilirsiniz
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Adres boş olamaz!')),
+      );
     }
   }
 
