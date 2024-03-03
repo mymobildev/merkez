@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "651420795565",
+    "project_id": "merkez-bd05b",
+    "storage_bucket": "merkez-bd05b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:651420795565:android:7e3fe3e9436a1d9897fc24",
+        "android_client_info": {
+          "package_name": "com.techappto.merkez"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "651420795565-u2k4rmb2pimrnn6i6kf3ih0p4jg95dqn.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCHoA1JG5evWGf4LBcaRlURQoDE6GLrsUA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "651420795565-u2k4rmb2pimrnn6i6kf3ih0p4jg95dqn.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
